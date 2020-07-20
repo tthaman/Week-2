@@ -7,7 +7,6 @@ const testUtils = require('../test-utils');
 describe("/calendars", () => {
   beforeAll(testUtils.connectDB);
   afterAll(testUtils.stopDB);
-
   afterEach(testUtils.clearDB)
 
   describe("GET /:id", () => {

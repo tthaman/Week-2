@@ -8,17 +8,12 @@ describe("/events", () => {
   beforeAll(testUtils.connectDB);
   afterAll(testUtils.stopDB);
 
-  afterEach(testUtils.clearDB)
-
   describe('POST Events', () => {
-    let calendar1;
-
-    beforeAll(async () => {
-      calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
-    });
+    afterEach(testUtils.clearDB)
 
     describe("GET /:calId/events/:id", () => {
       it("should return 404 if no matching id", async () => {
+        let calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
         const res = await request(server).get("/calendars/" + calendar1._id + "/events/id1");
         expect(res.statusCode).toEqual(404);
       });
@@ -26,16 +21,18 @@ describe("/events", () => {
 
     describe('POST /events', () => {
       it('should return a 400 without a provided name', async () => {
+        let calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
         const res = await request(server).post("/calendars/" + calendar1._id + "/events").send({});
         expect(res.statusCode).toEqual(400);
       });
     });
 
     describe('GET /:id after multiple POST /', () => {
-      let event1, event2;
+      let event1, event2, calendar1;
       const aDate = new Date().toDateString();
 
       beforeEach(async () => {
+        calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
         event1 = (await request(server).post("/calendars/" + calendar1._id + "/events").send(
           {name: 'event1', date: aDate, calendarId: calendar1._id })).body;
         event2 = (await request(server).post("/calendars/" + calendar1._id + "/events").send(
@@ -69,16 +66,17 @@ describe("/events", () => {
 
     describe('GET / all events...return error /', () => {
       it('should return all events', async () => {
-        const res = await request(server).get("/calendars/" + calendar1._id + "/events/");
+        const res = await request(server).get("/calendars/bob/events/");
         expect(res.statusCode).toEqual(404);
       });
     });
 
     describe('GET / after multiple POST /', () => {
-      let event1, event2;
+      let event1, event2, calendar1;
       const aDate = new Date().toDateString();
 
       beforeEach(async () => {
+        calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
         event1 = (await request(server).post("/calendars/" + calendar1._id + "/events").send(
           {name: 'event1', date: aDate, calendarId: calendar1._id })).body;
         event2 = (await request(server).post("/calendars/" + calendar1._id + "/events").send(
@@ -94,10 +92,11 @@ describe("/events", () => {
     });
 
     describe('PUT /calId:/event/:id after POST /', () => {
-      let event1;
+      let event1, calendar1;
       let aDate = new Date().toDateString();
 
       beforeEach(async () => {
+        calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
         event1 = (await request(server).post("/calendars/" + calendar1._id + "/events").send(
         {name: 'event1', date: aDate, calendarId: calendar1._id })).body;
       });
@@ -119,15 +118,16 @@ describe("/events", () => {
     });
 
     describe('DELETE /event/:id after POST /', () => {
-      let event1;
+      let event1, calendar1;
       const aDate = new Date().toDateString();
 
       beforeEach(async () => {
+        calendar1 = (await request(server).post("/calendars").send({ name: 'calendar1' })).body;
         event1 = (await request(server).post("/calendars/" + calendar1._id + "/events").send(
           {name: 'event1', date: aDate, calendarId: calendar1._id })).body;
       });
 
-      it('should delete and not return calendar1 on next GET', async () => {
+      it('should not find anything to delete', async () => {
         const res = await request(server).delete("/calendars/" + calendar1._id + "/events/bob");
         expect(res.statusCode).toEqual(400);
       });
